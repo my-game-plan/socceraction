@@ -34,7 +34,7 @@ Socceraction contains the following components:
 - Converters for each of these provider's proprietary data format to the **SPADL** and **atomic-SPADL** formats, which are unified and expressive languages for on-the-ball player actions. [Read more »](https://socceraction.readthedocs.io/en/latest/documentation/spadl/index.html)
 - An implementation of the **Expected Threat (xT)** possession value framework. [Read more »](https://socceraction.readthedocs.io/en/latest/documentation/valuing_actions/xT.html)
 - An implementation of the **VAEP** and **Atomic-VAEP** possession value frameworks. [Read more »](https://socceraction.readthedocs.io/en/latest/documentation/valuing_actions/vaep.html)
-- **[NEW]** An implementation of **Hybrid-VAEP** possession value framework. [Read more »](https://github.com/lodevt/socceraction/blob/master/HybridVAEP.md)
+- **[NEW]** An implementation of the **Hybrid-VAEP** possession value framework. [Read more »](https://github.com/lodevt/socceraction/blob/master/HybridVAEP.md)
 
 ## Installation / Getting started
 
