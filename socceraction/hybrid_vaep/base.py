@@ -239,7 +239,6 @@ class HybridVAEP:
                     self.__models[col][model_version] = self._fit_xgboost(
                         X_train, y_train[col], eval_set, tree_params, fit_params
                     )
-                    print(f"Training done for {col}: {model_version}")
                 elif learner == 'catboost':
                     self.__models[col][model_version] = self._fit_catboost(
                         X_train, y_train[col], eval_set, tree_params, fit_params
