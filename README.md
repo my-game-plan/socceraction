@@ -6,7 +6,7 @@
 	<br/>
 
 [![PyPi](https://img.shields.io/pypi/v/socceraction.svg)](https://pypi.org/project/socceraction)
-[![Python Version: 3.7.1+](https://img.shields.io/badge/Python-3.7.1+-blue.svg)](https://pypi.org/project/socceraction)
+[![Python Version: 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://pypi.org/project/socceraction)
 [![Downloads](https://img.shields.io/pypi/dm/socceraction.svg)](https://pypistats.org/packages/socceraction)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://en.wikipedia.org/wiki/MIT_License)
 
@@ -38,7 +38,7 @@ Socceraction contains the following components:
 
 ## Installation / Getting started
 
-The recommended way to install `socceraction` is to simply use pip. The latest version officially supports Python 3.9 - 3.11.
+The recommended way to install `socceraction` is to simply use pip. The latest version officially supports Python 3.9 - 3.12.
 
 ```sh
 $ pip install socceraction
