@@ -110,7 +110,7 @@ class HybridVAEP:
             xfns_default + self.xfns_result if xfns is None else xfns + self.xfns_result
         )
         self.xfns_resultfree = xfns_default if xfns is None else xfns
-        self.yfns = [lab.scores, lab.concedes]
+        self.yfns = [lab.scores_time_based_window, lab.concedes_time_based_window]
         self.nb_prev_actions = nb_prev_actions
 
     def compute_features(self, game: pd.Series, game_actions: fs.Actions) -> pd.DataFrame:
