@@ -99,6 +99,7 @@ def _parse_event(event: MyGamePlanEvent) -> dict[str, int]:
         "clearance": _parse_clearance_event,
         "keeper_defensive_action": _parse_goalkeeper_event,
         "interception": _parse_interception_event,
+        "recovery": _parse_interception_event,
         "dribble": _parse_take_on_event,
     }
     parser = events.get(event.event_type, _parse_event_as_non_action)
