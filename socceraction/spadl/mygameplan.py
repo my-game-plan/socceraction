@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from pandas import DataFrame
+from pandera.typing import DataFrame
 
 from . import config as spadlconfig
 from .schema import SPADLSchema
