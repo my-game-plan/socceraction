@@ -15,7 +15,7 @@ __all__ = [
     "mygameplan",
 ]
 
-from . import config, opta, statsbomb, wyscout
+from . import config, mygameplan, opta, statsbomb, wyscout
 from .config import actiontypes_df, bodyparts_df, results_df
 from .schema import SPADLSchema
 from .utils import add_names, play_left_to_right

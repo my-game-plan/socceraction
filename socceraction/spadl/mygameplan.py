@@ -4,9 +4,8 @@ from typing import Optional
 
 from pandas import DataFrame
 
-from socceraction.spadl import SPADLSchema
-
 from . import config as spadlconfig
+from .schema import SPADLSchema
 
 MGP_TO_SOCCERACTION_X = 1.05
 MGP_TO_SOCCERACTION_Y = 0.68
