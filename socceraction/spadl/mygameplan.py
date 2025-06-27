@@ -93,6 +93,13 @@ def _parse_event(event: MyGamePlanEvent) -> dict[str, int]:
     events = {
         "pass": _parse_pass_event,
         "shot": _parse_shot_event,
+        "carry": _parse_carry_event,
+        "foul": _parse_foul_event,
+        "duel": _parse_duel_event,
+        "clearance": _parse_clearance_event,
+        "keeper_defensive_action": _parse_goalkeeper_event,
+        "interception": _parse_interception_event,
+        "dribble": _parse_take_on_event,
     }
     parser = events.get(event.event_type, _parse_event_as_non_action)
     a, r, b = parser(event)
@@ -181,6 +188,96 @@ def _parse_shot_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
         r = "owngoal"
     else:
         r = "fail"
+
+    return a, r, b
+
+
+def _parse_carry_event(_e: MyGamePlanEvent) -> tuple[str, str, str]:
+    a = "dribble"
+    r = "success"
+    b = "foot"
+    return a, r, b
+
+
+def _parse_foul_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    a = "foul"
+    r = "fail"
+    b = "foot"
+
+    secondary_event_types = event.get("secondary_event_types", [])
+
+    if "yellow_card" in secondary_event_types:
+        r = "yellow_card"
+    elif "red_card" in secondary_event_types:
+        r = "red_card"
+
+    return a, r, b
+
+
+def _parse_duel_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    secondary_event_types = event.get("secondary_event_types", [])
+
+    a = "non_action"
+    b = "foot"
+    if (
+        "sliding_tackle" in secondary_event_types or "ground_duel" in secondary_event_types
+    ) and "loose_ball_duel" not in secondary_event_types:
+        a = "tackle"
+        b = "foot"
+    if event.result == "unsuccessful" or event.result == "lost":
+        r = "fail"
+    else:
+        r = "success"
+
+    return a, r, b
+
+
+def _parse_clearance_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    a = "clearance"
+    r = "success"
+    b = "foot"
+    return a, r, b
+
+
+def _parse_goalkeeper_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    a = "non_action"
+    r = "success"
+    secondary_event_types = event.get("secondary_event_types", [])
+    b = "other"
+
+    if "SAVE" in secondary_event_types:
+        a = "keeper_save"
+        r = "success"
+    if "claim" in secondary_event_types:
+        a = "keeper_claim"
+    if "punch" in secondary_event_types:
+        a = "keeper_punch"
+    if "pick_up" in secondary_event_types:
+        a = "keeper_pick_up"
+
+    return a, r, b
+
+
+def _parse_interception_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    a = "interception"
+    b = "foot"
+    if event.result == "unsuccessful":
+        r = "fail"
+    else:
+        r = "success"
+
+    return a, r, b
+
+
+def _parse_take_on_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    a = "take_on"
+
+    if event.result == "successful":
+        r = "success"
+    else:
+        r = "fail"
+
+    b = "foot"
 
     return a, r, b
 
