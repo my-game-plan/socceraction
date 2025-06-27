@@ -12,6 +12,7 @@ __all__ = [
     "results_df",
     "add_names",
     "play_left_to_right",
+    "mygameplan",
 ]
 
 from . import config, opta, statsbomb, wyscout
