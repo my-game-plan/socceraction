@@ -92,6 +92,7 @@ def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
 def _parse_event(event: MyGamePlanEvent) -> dict[str, int]:
     events = {
         "pass": _parse_pass_event,
+        "shot": _parse_shot_event,
     }
     parser = events.get(event.event_type, _parse_event_as_non_action)
     a, r, b = parser(event)
@@ -103,7 +104,7 @@ def _parse_event(event: MyGamePlanEvent) -> dict[str, int]:
 
 
 def _parse_pass_event(event: MyGamePlanEvent) -> tuple[str, str, str]:  # noqa: C901
-    b = _parse_bodypart(event.get("pass", {}).get("body_part", None), default="foot")
+    b = _parse_bodypart(event.get("pass", {}).get("body_part", None))
 
     secondary_event_types = event.get("secondary_event_types", [])
     set_piece_type = event.get("pass", {}).get("set_piece_type", None)
@@ -159,6 +160,29 @@ def _parse_bodypart(body_part: str, default: str = "foot") -> str:
     elif body_part is not None:
         return "other"
     return body_part
+
+
+def _parse_shot_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
+    b = _parse_bodypart(event.get("shot", {}).get("body_part", None))
+
+    set_piece_type = event.get("shot", {}).get("set_piece_type", None)
+
+    if set_piece_type in ["direct_free_kick", "indirect_free_kick"]:
+        a = "shot_freekick"
+    elif set_piece_type == "penalty":
+        a = "shot_penalty"
+    else:
+        a = "shot"
+
+    if event.result == "goal":
+        r = "success"
+    elif event.result == "own_goal":
+        a = "bad_touch"
+        r = "owngoal"
+    else:
+        r = "fail"
+
+    return a, r, b
 
 
 def _parse_event_as_non_action(event: MyGamePlanEvent) -> tuple[str, str, str]:
