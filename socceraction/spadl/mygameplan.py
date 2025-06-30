@@ -11,10 +11,32 @@ MGP_TO_SOCCERACTION_X = 1.05
 MGP_TO_SOCCERACTION_Y = 0.68
 
 
-class MyGamePlanEvent:
+class MyGamePlanEvent(dict):
     """A class representing a MyGamePlan event."""
 
-    pass
+    def __getattr__(self, name: str) -> any:
+        """Retrieve the value of the specified attribute.
+
+        If the attribute does not exist, return None. If the value is a dictionary,
+        wrap it in a MyGamePlanEvent instance.
+
+        Parameters
+        ----------
+        name : str
+        The name of the attribute to retrieve.
+
+        Returns
+        -------
+        Optional[Any]
+        The value of the attribute, or None if it does not exist.
+        """
+        try:
+            value = self[name]
+            if isinstance(value, dict):
+                return MyGamePlanEvent(value)  # Wrap nested dictionaries
+            return value
+        except KeyError:
+            return None
 
 
 def convert_to_actions(
@@ -46,8 +68,8 @@ def convert_to_actions(
             time_seconds=event.timestamp,
             team_id=event.team._id if event.team else None,
             player_id=event.player._id if event.player else None,
-            start_x=event.coordinates[0] * MGP_TO_SOCCERACTION_X if event.coordinates else None,
-            start_y=event.coordinates[1] * MGP_TO_SOCCERACTION_X if event.coordinates else None,
+            start_x=event.coordinates[1] * MGP_TO_SOCCERACTION_X if event.coordinates else None,
+            start_y=event.coordinates[0] * MGP_TO_SOCCERACTION_Y if event.coordinates else None,
             **_get_end_location(event),
             **_parse_event(event),
         )
@@ -58,8 +80,8 @@ def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
     if event.event_type == "pass":
         if event.get("pass"):
             return {
-                "end_x": event.get("pass").end_coordinates[0] * MGP_TO_SOCCERACTION_X,
-                "end_y": event.get("pass").end_coordinates[1] * MGP_TO_SOCCERACTION_Y,
+                "end_x": event.get("pass").get("end_coordinates")[1] * MGP_TO_SOCCERACTION_X,
+                "end_y": event.get("pass").get("end_coordinates")[0] * MGP_TO_SOCCERACTION_Y,
             }
     elif event.event_type == "shot":
         if event.get("shot").get("shot_coordinate_y"):
@@ -69,22 +91,22 @@ def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
             }
         else:
             return {
-                "end_x": event.coordinates[0] * MGP_TO_SOCCERACTION_X
+                "end_x": event.coordinates[1] * MGP_TO_SOCCERACTION_X
                 if event.coordinates
                 else None,
-                "end_y": event.coordinates[1] * MGP_TO_SOCCERACTION_Y
+                "end_y": event.coordinates[0] * MGP_TO_SOCCERACTION_Y
                 if event.coordinates
                 else None,
             }
     elif event.event_type == "carry":
         if event.get("carry"):
             return {
-                "end_x": event.get("carry").end_coordinates[0] * MGP_TO_SOCCERACTION_X,
-                "end_y": event.get("carry").end_coordinates[1] * MGP_TO_SOCCERACTION_Y,
+                "end_x": event.get("carry").get("end_coordinates")[1] * MGP_TO_SOCCERACTION_X,
+                "end_y": event.get("carry").get("end_coordinates")[0] * MGP_TO_SOCCERACTION_Y,
             }
 
     if event.coordinates:
-        return {"end_x": event.coordinates[0], "end_y": event.coordinates[0]}
+        return {"end_x": event.coordinates[1], "end_y": event.coordinates[0]}
     return {"end_x": None, "end_y": None}
 
 
