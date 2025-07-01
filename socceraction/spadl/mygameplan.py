@@ -6,6 +6,7 @@ import pandas as pd
 from pandera.typing import DataFrame
 
 from . import config as spadlconfig
+from .base import _fix_clearances
 from .schema import SPADLSchema
 
 MGP_TO_SOCCERACTION_X = 1.05
@@ -82,7 +83,7 @@ def convert_to_actions(
     )
     df_actions = df_actions[df_actions.type_id != spadlconfig.actiontypes.index("non_action")]
 
-    # df_actions = _fix_clearances(df_actions)
+    df_actions = _fix_clearances(df_actions)
 
     df_actions["action_id"] = range(len(df_actions))
     return cast(DataFrame[SPADLSchema], df_actions)
