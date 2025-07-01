@@ -1,7 +1,8 @@
 """MyGamePlan events to SPADL converter."""
 
-from typing import Optional
+from typing import Optional, cast
 
+import pandas as pd
 from pandera.typing import DataFrame
 
 from . import config as spadlconfig
@@ -74,6 +75,17 @@ def convert_to_actions(
             **_parse_event(event),
         )
         actions.append(action)
+    df_actions = (
+        pd.DataFrame(actions)
+        .sort_values(["game_id", "period_id", "time_seconds"], kind="mergesort")
+        .reset_index(drop=True)
+    )
+    df_actions = df_actions[df_actions.type_id != spadlconfig.actiontypes.index("non_action")]
+
+    # df_actions = _fix_clearances(df_actions)
+
+    df_actions["action_id"] = range(len(df_actions))
+    return cast(DataFrame[SPADLSchema], df_actions)
 
 
 def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
