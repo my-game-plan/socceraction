@@ -76,12 +76,13 @@ def convert_to_actions(
             **_parse_event(event),
         )
         actions.append(action)
+
     df_actions = (
         pd.DataFrame(actions)
+        .loc[lambda df: df["type_id"] != spadlconfig.actiontypes.index("non_action")]
         .sort_values(["game_id", "period_id", "time_seconds"], kind="mergesort")
         .reset_index(drop=True)
     )
-    df_actions = df_actions[df_actions.type_id != spadlconfig.actiontypes.index("non_action")]
 
     df_actions = _fix_clearances(df_actions)
 
