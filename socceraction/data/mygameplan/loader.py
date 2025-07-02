@@ -27,8 +27,9 @@ class MyGamePlanLoader(EventDataLoader):
 
     client: MongoClient
 
-    def __init__(self, connection_string: str) -> None:
+    def __init__(self, connection_string: str, db_name: str) -> None:
         self.client = MongoClient(connection_string)
+        self.db = self.client[db_name]
 
     def competitions(self) -> DataFrame[MyGamePlanCompetitionSchema]:
         """Return a dataframe with all available competitions and seasons.
@@ -45,7 +46,7 @@ class MyGamePlanLoader(EventDataLoader):
             :class:`~socceraction.spadl.statsbomb.MyGamePlanCompetitionSchema` for the schema.
         """
         db_competition_seasons = list(
-            self.client.db["competition_seasons"].find(
+            self.db["competition_seasons"].find(
                 {}, {"_id": 1, "name": 1, "season_id": 1, "competition_id": 1}
             )
         )
@@ -82,7 +83,7 @@ class MyGamePlanLoader(EventDataLoader):
             :class:`~socceraction.spadl.mygameplan.MyGamePlanSchema` for the schema.
         """
         db_matches = list(
-            self.client.db["matches"].find(
+            self.db["matches"].find(
                 {
                     "event_data_available": True,
                     "competition_id": competition_id,
@@ -132,7 +133,7 @@ class MyGamePlanLoader(EventDataLoader):
             A dataframe containing both teams. See
             :class:`~socceraction.spadl.statsbomb.MyGamePlanTeamSchema` for the schema.
         """
-        match = self.client.db["matches"].find_one(
+        match = self.db["matches"].find_one(
             {"_id": game_id},
             {"home_team.name": 1, "away_team.name": 1, "home_team._id": 1, "away_team._id": 1},
         )
@@ -161,7 +162,7 @@ class MyGamePlanLoader(EventDataLoader):
             A dataframe containing all players. See
             :class:`~socceraction.spadl.statsbomb.MyGamePlanPlayerSchema` for the schema.
         """
-        match = self.client.db["matches"].find_one(
+        match = self.db["matches"].find_one(
             {"_id": game_id},
             {
                 "home_team._id": 1,
@@ -208,8 +209,13 @@ class MyGamePlanLoader(EventDataLoader):
             :class:`~socceraction.spadl.statsbomb.StatsBombEventSchema` for the schema.
         """
         events = (
-            self.client.db["events"]
+            self.db["events"]
             .find({"match._id": game_id})
             .sort([("period", 1), ("timestamp", 1), ("event_type", -1)])
         )
-        return cast(DataFrame[MyGamePlanEventSchema], pd.DataFrame(events))
+        events_df = pd.DataFrame(events)
+
+        # Replace NaN with None
+        events_df = events_df.where(pd.notnull(events_df), None)
+
+        return cast(DataFrame[MyGamePlanEventSchema], events_df)

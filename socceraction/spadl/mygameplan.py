@@ -149,7 +149,7 @@ def _parse_event(event: MyGamePlanEvent) -> dict[str, int]:
 def _parse_pass_event(event: MyGamePlanEvent) -> tuple[str, str, str]:  # noqa: C901
     b = _parse_bodypart(event.get("pass", {}).get("body_part", None))
 
-    secondary_event_types = event.get("secondary_event_types", [])
+    secondary_event_types = event.get("secondary_event_types", []) or []
     set_piece_type = event.get("pass", {}).get("set_piece_type", None)
     pass_distance = event.get("pass", {}).get("distance", None)
     a = "pass"  # default
@@ -240,7 +240,7 @@ def _parse_foul_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
     r = "fail"
     b = "foot"
 
-    secondary_event_types = event.get("secondary_event_types", [])
+    secondary_event_types = event.get("secondary_event_types", []) or []
 
     if "yellow_card" in secondary_event_types:
         r = "yellow_card"
@@ -251,7 +251,7 @@ def _parse_foul_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
 
 
 def _parse_duel_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
-    secondary_event_types = event.get("secondary_event_types", [])
+    secondary_event_types = event.get("secondary_event_types", []) or []
 
     a = "non_action"
     b = "foot"
@@ -278,7 +278,7 @@ def _parse_clearance_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
 def _parse_goalkeeper_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
     a = "non_action"
     r = "success"
-    secondary_event_types = event.get("secondary_event_types", [])
+    secondary_event_types = event.get("secondary_event_types", []) or []
     b = "other"
 
     if "SAVE" in secondary_event_types:
