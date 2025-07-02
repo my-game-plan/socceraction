@@ -3,6 +3,7 @@
 from typing import cast
 
 import pandas as pd  # type: ignore
+from bson import ObjectId
 from pandera.typing import DataFrame
 from pymongo import MongoClient
 
@@ -126,14 +127,14 @@ class MyGamePlanLoader(EventDataLoader):
                 "competition_id": match["competition_id"],
                 "game_day": match["match_day"],
                 "game_date": match["date"],
-                "home_team_id": str(match["home_team"]["_id"]),
-                "away_team_id": str(match["away_team"]["_id"]),
+                "home_team_id": match["home_team"]["_id"],
+                "away_team_id": match["away_team"]["_id"],
             }
             for match in db_matches
         ]
         return cast(DataFrame[MyGamePlanGameSchema], pd.DataFrame(games))
 
-    def teams(self, game_id: str) -> DataFrame[MyGamePlanTeamSchema]:
+    def teams(self, game_id: ObjectId) -> DataFrame[MyGamePlanTeamSchema]:
         """Return a dataframe with both teams that participated in a game.
 
         Parameters
@@ -157,12 +158,12 @@ class MyGamePlanLoader(EventDataLoader):
             {"home_team.name": 1, "away_team.name": 1, "home_team._id": 1, "away_team._id": 1},
         )
         teams = [
-            {"team_id": str(match["home_team"]["_id"]), "team_name": match["home_team"]["name"]},
-            {"team_id": str(match["away_team"]["_id"]), "team_name": match["away_team"]["name"]},
+            {"team_id": match["home_team"]["_id"], "team_name": match["home_team"]["name"]},
+            {"team_id": match["away_team"]["_id"], "team_name": match["away_team"]["name"]},
         ]
         return cast(DataFrame[MyGamePlanTeamSchema], pd.DataFrame(teams))
 
-    def players(self, game_id: str) -> DataFrame[MyGamePlanPlayerSchema]:
+    def players(self, game_id: ObjectId) -> DataFrame[MyGamePlanPlayerSchema]:
         """Return a dataframe with all players that participated in a game.
 
         Parameters
@@ -208,7 +209,7 @@ class MyGamePlanLoader(EventDataLoader):
                 )
         return cast(DataFrame[MyGamePlanPlayerSchema], pd.DataFrame(players))
 
-    def events(self, game_id: str) -> DataFrame[MyGamePlanEventSchema]:
+    def events(self, game_id: ObjectId) -> DataFrame[MyGamePlanEventSchema]:
         """Return a dataframe with the event stream of a game.
 
         Parameters
