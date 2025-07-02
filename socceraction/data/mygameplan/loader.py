@@ -45,17 +45,36 @@ class MyGamePlanLoader(EventDataLoader):
             A dataframe containing all available competitions and seasons. See
             :class:`~socceraction.spadl.statsbomb.MyGamePlanCompetitionSchema` for the schema.
         """
-        db_competition_seasons = list(
-            self.db["competition_seasons"].find(
-                {}, {"_id": 1, "name": 1, "season_id": 1, "competition_id": 1}
-            )
-        )
+        pipeline = [
+            {
+                "$lookup": {
+                    "from": "competitions",
+                    "localField": "competition_id",
+                    "foreignField": "_id",
+                    "as": "competition",
+                }
+            },
+            {
+                "$unwind": "$competition"  # assuming each competition_id matches exactly one competition
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "season_id": 1,
+                    "competition_id": 1,
+                    "competition_name": "$competition.name",
+                }
+            },
+        ]
+
+        db_competition_seasons = list(self.db["competition_seasons"].aggregate(pipeline))
+
         competitions = [
             {
                 "season_id": cs["season_id"],
                 "competition_id": cs["competition_id"],
-                "competition_name": f"{cs['competition_id']}-{cs['season_id']}",
-                "season_name": f"{cs['competition_id']}-{cs['season_id']}",
+                "competition_name": cs["competition_name"],
+                "season_name": cs["season_id"],
             }
             for cs in db_competition_seasons
         ]
