@@ -283,7 +283,7 @@ def _parse_goalkeeper_event(event: MyGamePlanEvent) -> tuple[str, str, str]:
     secondary_event_types = event.get("secondary_event_types", []) or []
     b = "other"
 
-    if "SAVE" in secondary_event_types:
+    if "save" in secondary_event_types:
         a = "keeper_save"
         r = "success"
     if "claim" in secondary_event_types:
