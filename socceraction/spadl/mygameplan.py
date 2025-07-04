@@ -6,7 +6,7 @@ import pandas as pd
 from pandera.typing import DataFrame
 
 from . import config as spadlconfig
-from .base import _fix_clearances
+from .base import _fix_clearances, _fix_direction_of_play
 from .schema import SPADLSchema
 
 MGP_TO_SOCCERACTION_X = 1.05
@@ -85,6 +85,8 @@ def convert_to_actions(
     )
 
     df_actions = _fix_clearances(df_actions)
+    home_team_id = events[0]["match"]["home_team"]["_id"]
+    df_actions = _fix_direction_of_play(df_actions, home_team_id)
 
     df_actions["action_id"] = range(len(df_actions))
     return cast(DataFrame[SPADLSchema], df_actions)
