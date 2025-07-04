@@ -84,9 +84,9 @@ def convert_to_actions(
         .reset_index(drop=True)
     )
 
-    df_actions = _fix_clearances(df_actions)
     home_team_id = events[0]["match"]["home_team"]["_id"]
     df_actions = _fix_direction_of_play(df_actions, home_team_id)
+    df_actions = _fix_clearances(df_actions)
 
     df_actions["action_id"] = range(len(df_actions))
     return cast(DataFrame[SPADLSchema], df_actions)
