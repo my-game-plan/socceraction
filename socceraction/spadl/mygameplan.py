@@ -1,6 +1,6 @@
 """MyGamePlan events to SPADL converter."""
 
-from typing import Optional, cast
+from typing import Optional, Union, cast
 
 import pandas as pd
 from pandera.typing import DataFrame
@@ -16,7 +16,7 @@ MGP_TO_SOCCERACTION_Y = 0.68
 class MyGamePlanEvent(dict):
     """A class representing a MyGamePlan event."""
 
-    def __getattr__(self, name: str) -> any:
+    def __getattr__(self, name: str) -> Union["MyGamePlanEvent", int, str, None]:
         """Retrieve the value of the specified attribute.
 
         If the attribute does not exist, return None. If the value is a dictionary,
