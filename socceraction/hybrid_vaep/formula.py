@@ -19,6 +19,7 @@ def offensive_value(
     actions: DataFrame[SPADLSchema],
     scores_standard: Series[float],
     scores_resultfree: Series[float],
+    concedes_standard: Series[float],
     concedes_resultfree: Series[float],
 ) -> Series[float]:
     r"""Compute the offensive value of each action.
@@ -60,13 +61,18 @@ def offensive_value(
     prev_scores_resultfree = _prev(scores_resultfree) * sameteam + _prev(concedes_resultfree) * (
         ~sameteam
     )
+    prev_scores_standard = _prev(scores_standard) * sameteam + _prev(concedes_standard) * (
+        ~sameteam
+    )
 
     # if the previous action was too long ago, the odds of scoring are now 0
     toolong_idx = abs(actions.time_seconds - _prev(actions.time_seconds)) > _samephase_nb
     prev_scores_resultfree[toolong_idx] = 0.0
 
+    shot_type_names = ["shot", "shot_freekick", "shot_penalty"]
+
     # if the previous action was a goal, the odds of scoring are now 0
-    prevgoal_idx = (_prev(actions.type_name).isin(["shot", "shot_freekick", "shot_penalty"])) & (
+    prevgoal_idx = (_prev(actions.type_name).isin(shot_type_names)) & (
         _prev(actions.result_name) == "success"
     )
     prev_scores_resultfree[prevgoal_idx] = 0.0
@@ -76,13 +82,13 @@ def offensive_value(
     penalty_idx = actions.type_name == "shot_penalty"
     prev_scores_resultfree[penalty_idx] = 0.792453
 
-    # fixed odds after missed penalty
+    # after missed shot of own team, incorporate result of previous action
     missed_penalty_idx_from_same_team = (
-        (_prev(actions.type_name) == "shot_penalty")
+        (_prev(actions.type_name).isin(shot_type_names))
         & (_prev(actions.result_name) == "fail")
         & sameteam
     )
-    prev_scores_resultfree[missed_penalty_idx_from_same_team] = 0.1
+    prev_scores_resultfree[missed_penalty_idx_from_same_team] = prev_scores_standard
 
     # fixed odds of scoring when corner
     corner_idx = actions.type_name.isin(["corner_crossed", "corner_short"])
@@ -195,7 +201,7 @@ def value(
     """
     v = pd.DataFrame()
     v["offensive_value"] = offensive_value(
-        actions, Pscores_standard, Pscores_resultfree, Pconcedes_resultfree
+        actions, Pscores_standard, Pscores_resultfree, Pconcedes_standard, Pconcedes_resultfree
     )
     v["defensive_value"] = defensive_value(
         actions, Pscores_resultfree, Pconcedes_standard, Pconcedes_resultfree
