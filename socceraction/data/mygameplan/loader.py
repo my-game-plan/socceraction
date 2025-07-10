@@ -231,7 +231,7 @@ class MyGamePlanLoader(EventDataLoader):
         events = (
             self.db["events"]
             .find({"match._id": game_id})
-            .sort([("period", 1), ("timestamp", 1), ("event_type", -1)])
+            .sort([("period", 1), ("timestamp", 1), ("provider_id", 1)])
         )
         events_df = pd.DataFrame(events)
 

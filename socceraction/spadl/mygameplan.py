@@ -80,7 +80,8 @@ def convert_to_actions(
     df_actions = (
         pd.DataFrame(actions)
         .loc[lambda df: df["type_id"] != spadlconfig.actiontypes.index("non_action")]
-        .sort_values(["game_id", "period_id", "time_seconds"], kind="mergesort")
+        .assign(orig_order=lambda df: df.index)
+        .sort_values(["game_id", "period_id", "time_seconds", "orig_order"], kind="mergesort")
         .reset_index(drop=True)
     )
 
