@@ -122,7 +122,10 @@ def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
             }
 
     if event.coordinates:
-        return {"end_x": event.coordinates[1], "end_y": event.coordinates[0]}
+        return {
+            "end_x": event.coordinates[1] * MGP_TO_SOCCERACTION_X,
+            "end_y": event.coordinates[0] * MGP_TO_SOCCERACTION_Y,
+        }
     return {"end_x": None, "end_y": None}
 
 
