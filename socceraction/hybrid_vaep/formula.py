@@ -1,4 +1,5 @@
 """Implements the formula of the Hybrid-VAEP framework."""
+
 import pandas as pd  # type: ignore
 from pandera.typing import DataFrame, Series
 
@@ -65,18 +66,26 @@ def offensive_value(
     prev_scores_resultfree[toolong_idx] = 0.0
 
     # if the previous action was a goal, the odds of scoring are now 0
-    prevgoal_idx = (_prev(actions.type_name).isin(['shot', 'shot_freekick', 'shot_penalty'])) & (
-        _prev(actions.result_name) == 'success'
+    prevgoal_idx = (_prev(actions.type_name).isin(["shot", "shot_freekick", "shot_penalty"])) & (
+        _prev(actions.result_name) == "success"
     )
     prev_scores_resultfree[prevgoal_idx] = 0.0
     prev_scores_resultfree = prev_scores_resultfree.astype(float)
 
     # fixed odds of scoring when penalty
-    penalty_idx = actions.type_name == 'shot_penalty'
+    penalty_idx = actions.type_name == "shot_penalty"
     prev_scores_resultfree[penalty_idx] = 0.792453
 
+    # fixed odds after missed penalty
+    missed_penalty_idx_from_same_team = (
+        (_prev(actions.type_name) == "shot_penalty")
+        & (_prev(actions.result_name) == "fail")
+        & (actions["team_id"] == _prev(actions.team_id))
+    )
+    prev_scores_resultfree[missed_penalty_idx_from_same_team] = 0.1
+
     # fixed odds of scoring when corner
-    corner_idx = actions.type_name.isin(['corner_crossed', 'corner_short'])
+    corner_idx = actions.type_name.isin(["corner_crossed", "corner_short"])
     prev_scores_resultfree[corner_idx] = 0.046500
 
     return scores_standard - prev_scores_resultfree
@@ -131,9 +140,12 @@ def defensive_value(
     toolong_idx = abs(actions.time_seconds - _prev(actions.time_seconds)) > _samephase_nb
     prev_concedes_resultfree[toolong_idx] = 0
 
+    prev_penalty_idx = _prev(actions.type_name) == "shot_penalty"
+    prev_concedes_resultfree[prev_penalty_idx] = 0.792453
+
     # if the previous action was a goal, the odds of conceding are now 0
-    prevgoal_idx = (_prev(actions.type_name).isin(['shot', 'shot_freekick', 'shot_penalty'])) & (
-        _prev(actions.result_name) == 'success'
+    prevgoal_idx = (_prev(actions.type_name).isin(["shot", "shot_freekick", "shot_penalty"])) & (
+        _prev(actions.result_name) == "success"
     )
     prev_concedes_resultfree[prevgoal_idx] = 0
 
@@ -180,11 +192,11 @@ def value(
     :func:`~socceraction.hybrid-vaep.formula.defensive_value`: The defensive value
     """
     v = pd.DataFrame()
-    v['offensive_value'] = offensive_value(
+    v["offensive_value"] = offensive_value(
         actions, Pscores_standard, Pscores_resultfree, Pconcedes_resultfree
     )
-    v['defensive_value'] = defensive_value(
+    v["defensive_value"] = defensive_value(
         actions, Pscores_resultfree, Pconcedes_standard, Pconcedes_resultfree
     )
-    v['vaep_value'] = v['offensive_value'] + v['defensive_value']
+    v["vaep_value"] = v["offensive_value"] + v["defensive_value"]
     return v
