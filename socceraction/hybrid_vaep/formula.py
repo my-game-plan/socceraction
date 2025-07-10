@@ -80,7 +80,7 @@ def offensive_value(
     missed_penalty_idx_from_same_team = (
         (_prev(actions.type_name) == "shot_penalty")
         & (_prev(actions.result_name) == "fail")
-        & (actions["team_id"] == _prev(actions.team_id))
+        & sameteam
     )
     prev_scores_resultfree[missed_penalty_idx_from_same_team] = 0.1
 
@@ -139,6 +139,8 @@ def defensive_value(
 
     toolong_idx = abs(actions.time_seconds - _prev(actions.time_seconds)) > _samephase_nb
     prev_concedes_resultfree[toolong_idx] = 0
+
+    prev_concedes_resultfree = prev_concedes_resultfree.astype(float)
 
     prev_penalty_idx = _prev(actions.type_name) == "shot_penalty"
     prev_concedes_resultfree[prev_penalty_idx] = 0.792453
