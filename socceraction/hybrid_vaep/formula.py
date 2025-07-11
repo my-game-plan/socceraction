@@ -143,13 +143,13 @@ def defensive_value(
         ~sameteam
     )
 
-    toolong_idx = abs(actions.time_seconds - _prev(actions.time_seconds)) > _samephase_nb
-    prev_concedes_resultfree[toolong_idx] = 0
-
     prev_concedes_resultfree = prev_concedes_resultfree.astype(float)
 
     prev_penalty_idx_other_team = (_prev(actions.type_name) == "shot_penalty") & ~sameteam
     prev_concedes_resultfree[prev_penalty_idx_other_team] = 0.792453
+
+    toolong_idx = abs(actions.time_seconds - _prev(actions.time_seconds)) > _samephase_nb
+    prev_concedes_resultfree[toolong_idx] = 0
 
     # if the previous action was a goal, the odds of conceding are now 0
     prevgoal_idx = (_prev(actions.type_name).isin(["shot", "shot_freekick", "shot_penalty"])) & (
