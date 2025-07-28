@@ -99,6 +99,7 @@ def offensive_value(
 
 def defensive_value(
     actions: DataFrame[SPADLSchema],
+    scores_standard: Series[float],
     scores_resultfree: Series[float],
     concedes_standard: Series[float],
     concedes_resultfree: Series[float],
@@ -139,11 +140,16 @@ def defensive_value(
         The defensive value of each action.
     """
     sameteam = _prev(actions.team_id) == actions.team_id
+
     prev_concedes_resultfree = _prev(concedes_resultfree) * sameteam + _prev(scores_resultfree) * (
         ~sameteam
     )
-
     prev_concedes_resultfree = prev_concedes_resultfree.astype(float)
+
+    prev_concedes_standard = _prev(concedes_standard) * sameteam + _prev(scores_standard) * (
+        ~sameteam
+    )
+    prev_concedes_standard = prev_concedes_standard.astype(float)
 
     prev_penalty_idx_other_team = (_prev(actions.type_name) == "shot_penalty") & ~sameteam
     prev_concedes_resultfree[prev_penalty_idx_other_team] = 0.792453
@@ -156,6 +162,13 @@ def defensive_value(
         _prev(actions.result_name) == "success"
     )
     prev_concedes_resultfree[prevgoal_idx] = 0
+
+    # If there is a clearance after a missed shot, incorporate the result of the previous action
+    clearance_idx = actions.type_name == "clearance"
+    prevmissedshot_idx = (
+        _prev(actions.type_name).isin(["shot", "shot_freekick", "shot_penalty"])
+    ) & (_prev(actions.result_name) == "fail")
+    prev_concedes_resultfree[clearance_idx & prevmissedshot_idx] = prev_concedes_standard
 
     return -(concedes_standard - prev_concedes_resultfree)
 
@@ -204,7 +217,7 @@ def value(
         actions, Pscores_standard, Pscores_resultfree, Pconcedes_standard, Pconcedes_resultfree
     )
     v["defensive_value"] = defensive_value(
-        actions, Pscores_resultfree, Pconcedes_standard, Pconcedes_resultfree
+        actions, Pscores_standard, Pscores_resultfree, Pconcedes_standard, Pconcedes_resultfree
     )
     v["vaep_value"] = v["offensive_value"] + v["defensive_value"]
     return v
