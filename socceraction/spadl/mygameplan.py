@@ -13,6 +13,11 @@ MGP_TO_SOCCERACTION_X = 1.05
 MGP_TO_SOCCERACTION_Y = 0.68
 
 
+def _has_valid_coordinates(coords: Optional[list]) -> bool:
+    """Check that coordinates is a non-empty list with non-None elements."""
+    return bool(coords) and coords[0] is not None and coords[1] is not None
+
+
 class MyGamePlanEvent(dict):
     """A class representing a MyGamePlan event."""
 
@@ -70,8 +75,8 @@ def convert_to_actions(
             time_seconds=event.timestamp,
             team_id=event.team._id if event.team else None,
             player_id=event.player._id if event.player else None,
-            start_x=event.coordinates[1] * MGP_TO_SOCCERACTION_X if event.coordinates else None,
-            start_y=event.coordinates[0] * MGP_TO_SOCCERACTION_Y if event.coordinates else None,
+            start_x=event.coordinates[1] * MGP_TO_SOCCERACTION_X if _has_valid_coordinates(event.coordinates) else None,
+            start_y=event.coordinates[0] * MGP_TO_SOCCERACTION_Y if _has_valid_coordinates(event.coordinates) else None,
             **_get_end_location(event),
             **_parse_event(event),
         )
@@ -109,10 +114,10 @@ def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
         else:
             return {
                 "end_x": event.coordinates[1] * MGP_TO_SOCCERACTION_X
-                if event.coordinates
+                if _has_valid_coordinates(event.coordinates)
                 else None,
                 "end_y": event.coordinates[0] * MGP_TO_SOCCERACTION_Y
-                if event.coordinates
+                if _has_valid_coordinates(event.coordinates)
                 else None,
             }
     elif event.event_type == "carry":
@@ -122,7 +127,7 @@ def _get_end_location(event: MyGamePlanEvent) -> dict[str, Optional[float]]:
                 "end_y": event.get("carry").get("end_coordinates")[0] * MGP_TO_SOCCERACTION_Y,
             }
 
-    if event.coordinates:
+    if _has_valid_coordinates(event.coordinates):
         return {
             "end_x": event.coordinates[1] * MGP_TO_SOCCERACTION_X,
             "end_y": event.coordinates[0] * MGP_TO_SOCCERACTION_Y,
